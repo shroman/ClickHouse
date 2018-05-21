@@ -74,7 +74,8 @@ void DataTypeNullable::deserializeBinaryBulkWithMultipleStreams(
     size_t limit,
     double avg_value_size_hint,
     bool position_independent_encoding,
-    SubstreamPath path) const
+    SubstreamPath path,
+    const DeserializeBinaryBulkStatePtr & /*state*/) const
 {
     ColumnNullable & col = static_cast<ColumnNullable &>(column);
 

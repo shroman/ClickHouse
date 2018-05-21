@@ -77,7 +77,8 @@ public:
         size_t limit,
         double avg_value_size_hint,
         bool position_independent_encoding,
-        SubstreamPath path) const override;
+        SubstreamPath path,
+        const DeserializeBinaryBulkStatePtr & state) const override;
 
     MutableColumnPtr createColumn() const override;
 

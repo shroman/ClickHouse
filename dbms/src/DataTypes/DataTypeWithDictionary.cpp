@@ -87,6 +87,10 @@ void DataTypeWithDictionary::serializeBinaryBulkWithMultipleStreams(
 
         UInt64 used_keys_size = used_keys->size();
         writeIntBinary(used_keys_size, *stream);
+
+        UInt64 indexes_size = sub_index->size();
+        writeIntBinary(indexes_size, *stream);
+
         dictionary_type->serializeBinaryBulkWithMultipleStreams(*used_keys, getter, 0, 0,
                                                                 position_independent_encoding, path);
     }
@@ -106,31 +110,58 @@ void DataTypeWithDictionary::deserializeBinaryBulkWithMultipleStreams(
         size_t limit,
         double /*avg_value_size_hint*/,
         bool position_independent_encoding,
-        SubstreamPath path) const
+        SubstreamPath path,
+        const DeserializeBinaryBulkStatePtr & state) const
 {
     ColumnWithDictionary & column_with_dictionary = typeid_cast<ColumnWithDictionary &>(column);
-    ColumnPtr indexes;
 
-    path.push_back(Substream::DictionaryKeys);
-    if (ReadBuffer * stream = getter(path))
+    auto dict_state = typeid_cast<DeserializeBinaryBulkStateWithDictionary *>(state.get());
+
+    auto readIndexes = [&](ReadBuffer * stream, size_t num_rows)
+    {
+        auto index_col = indexes_type->createColumn();
+        indexes_type->deserializeBinaryBulk(*index_col, *stream, num_rows, 0);
+        column_with_dictionary.getIndexes()->insertRangeFrom(*indexes->index(std::move(index_col), 0), 0, num_rows);
+    };
+
+    auto readDict = [&](ReadBuffer * stream)
     {
         UInt64 num_keys;
         readIntBinary(num_keys, *stream);
         auto dict_column = dictionary_type->createColumn();
         dictionary_type->deserializeBinaryBulkWithMultipleStreams(*dict_column, getter, num_keys, 0, position_independent_encoding, path);
-        indexes = column_with_dictionary.getUnique()->uniqueInsertRangeFrom(*dict_column, 0, num_keys);
-    }
+        return column_with_dictionary.getUnique()->uniqueInsertRangeFrom(*dict_column, 0, num_keys);
+    };
 
-    path.back() = Substream::DictionaryIndexes;
-    if (auto stream = getter(path))
+    path.push_back(Substream::DictionaryKeys);
+
+    while (limit)
     {
-        if (!indexes)
-            throw Exception("Dictionary keys wasn't deserialized", ErrorCodes::LOGICAL_ERROR);
+        if (dict_state->num_rows_to_read_until_next_index == 0)
+        {
+            path.back() = Substream::DictionaryKeys;
+            if (ReadBuffer * stream = getter(path))
+            {
+                if (stream->eof())
+                    return;
 
-        auto index_col = indexes_type->createColumn();
-        indexes_type->deserializeBinaryBulk(*index_col, *stream, limit, 0);
-        auto index_size = index_col->size();
-        column_with_dictionary.getIndexes()->insertRangeFrom(*indexes->index(std::move(index_col), 0), 0, index_size);
+                readIntBinary(dict_state->num_rows_to_read_until_next_index, *stream);
+                dict_state->index = readDict(stream);
+            }
+            else
+                return;
+        }
+
+        path.push_back(Substream::DictionaryIndexes);
+        if (auto stream = getter(path))
+        {
+            size_t num_rows_to_read = std::min(limit, dict_state->num_rows_to_read_until_next_index);
+            readIndexes(stream, num_rows_to_read);
+            limit -= num_rows_to_read;
+            dict_state->num_rows_to_read_until_next_index -= num_rows_to_read;
+        }
+        else
+            return;
     }
 }
 

@@ -206,7 +206,8 @@ void DataTypeArray::deserializeBinaryBulkWithMultipleStreams(
     size_t limit,
     double /*avg_value_size_hint*/,
     bool position_independent_encoding,
-    SubstreamPath path) const
+    SubstreamPath path,
+    const DeserializeBinaryBulkStatePtr & /*state*/) const
 {
     ColumnArray & column_array = typeid_cast<ColumnArray &>(column);
 

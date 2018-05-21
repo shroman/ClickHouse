@@ -315,7 +315,8 @@ void DataTypeTuple::deserializeBinaryBulkWithMultipleStreams(
     size_t limit,
     double avg_value_size_hint,
     bool position_independent_encoding,
-    SubstreamPath path) const
+    SubstreamPath path,
+    const DeserializeBinaryBulkStatePtr & /*state*/) const
 {
     path.push_back(Substream::TupleElement);
     for (const auto i : ext::range(0, ext::size(elems)))

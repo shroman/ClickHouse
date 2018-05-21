@@ -33,7 +33,8 @@ public:
         size_t limit,
         double avg_value_size_hint,
         bool position_independent_encoding,
-        SubstreamPath path) const override;
+        SubstreamPath path,
+        const DeserializeBinaryBulkStatePtr & state) const override;
 
     void serializeBinary(const Field & field, WriteBuffer & ostr) const override { nested_data_type->serializeBinary(field, ostr); }
     void deserializeBinary(Field & field, ReadBuffer & istr) const override { nested_data_type->deserializeBinary(field, istr); }
