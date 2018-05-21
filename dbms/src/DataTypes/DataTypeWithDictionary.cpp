@@ -71,8 +71,8 @@ void DataTypeWithDictionary::serializeBinaryBulkWithMultipleStreams(
     const ColumnWithDictionary & column_with_dictionary = typeid_cast<const ColumnWithDictionary &>(column);
     MutableColumnPtr sub_index;
 
-    if (limit == 0)
-        limit = column.size();
+    size_t max_limit = column.size() - offset;
+    limit = limit ? std::min(limit, max_limit) : max_limit;
 
     path.push_back(Substream::DictionaryKeys);
     if (auto stream = getter(path))
