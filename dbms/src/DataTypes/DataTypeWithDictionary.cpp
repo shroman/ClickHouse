@@ -140,10 +140,11 @@ void DataTypeWithDictionary::deserializeBinaryBulkWithMultipleStreams(
         column_with_dictionary.getIndexes()->insertRangeFrom(*index->index(std::move(index_col), 0), 0, num_rows);
     };
 
-    auto readDict = [&](ReadBuffer * stream)
+    auto readDict = [&](ReadBuffer * stream, UInt64 & num_indexes)
     {
         UInt64 num_keys;
         readIntBinary(num_keys, *stream);
+        readIntBinary(num_indexes, *stream);
         auto dict_column = dictionary_type->createColumn();
         dictionary_type->deserializeBinaryBulkWithMultipleStreams(*dict_column, getter, num_keys, 0,
                                                                   position_independent_encoding, path, dict_state->state);
@@ -162,8 +163,7 @@ void DataTypeWithDictionary::deserializeBinaryBulkWithMultipleStreams(
                 if (stream->eof())
                     return;
 
-                readIntBinary(dict_state->num_rows_to_read_until_next_index, *stream);
-                dict_state->index = readDict(stream);
+                dict_state->index = readDict(stream, dict_state->num_rows_to_read_until_next_index);
             }
             else
                 return;
