@@ -229,7 +229,7 @@ MutableColumnPtr DataTypeWithDictionary::createColumn() const
         if (!column)
             throw Exception("Unexpected numeric type: " + type->getName(), ErrorCodes::LOGICAL_ERROR);
 
-        return std::move(column);
+        return column;
     }
 
     throw Exception("Unexpected dictionary type for DataTypeWithDictionary: " + type->getName(),
