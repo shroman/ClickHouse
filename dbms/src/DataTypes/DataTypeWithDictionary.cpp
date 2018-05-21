@@ -169,7 +169,7 @@ void DataTypeWithDictionary::deserializeBinaryBulkWithMultipleStreams(
                 return;
         }
 
-        path.push_back(Substream::DictionaryIndexes);
+        path.back() = Substream::DictionaryIndexes;
         if (auto stream = getter(path))
         {
             size_t num_rows_to_read = std::min(limit, dict_state->num_rows_to_read_until_next_index);
