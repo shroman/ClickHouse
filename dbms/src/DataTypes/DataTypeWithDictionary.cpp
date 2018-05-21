@@ -104,12 +104,21 @@ void DataTypeWithDictionary::serializeBinaryBulkWithMultipleStreams(
     }
 }
 
-DeserializeBinaryBulkStatePtr DataTypeWithDictionary::createDeserializeBinaryBulkState() const
+struct DeserializeBinaryBulkStateWithDictionary : public IDataType::DeserializeBinaryBulkState
 {
-return std::make_shared<DeserializeBinaryBulkStateWithDictionary>(
-        dictionary_type->createDeserializeBinaryBulkState());
-}
+    UInt64 num_rows_to_read_until_next_index = 0;
+    ColumnPtr index;
+    IDataType::DeserializeBinaryBulkStatePtr state;
 
+    DeserializeBinaryBulkStateWithDictionary(IDataType::DeserializeBinaryBulkStatePtr && state)
+            : state(std::move(state)) {}
+};
+
+IDataType::DeserializeBinaryBulkStatePtr DataTypeWithDictionary::createDeserializeBinaryBulkState() const
+{
+    return std::make_shared<DeserializeBinaryBulkStateWithDictionary>(
+            dictionary_type->createDeserializeBinaryBulkState());
+}
 
 void DataTypeWithDictionary::deserializeBinaryBulkWithMultipleStreams(
         IColumn & column,

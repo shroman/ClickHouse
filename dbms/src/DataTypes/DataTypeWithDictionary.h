@@ -32,15 +32,6 @@ public:
             bool position_independent_encoding,
             SubstreamPath path) const override;
 
-    struct DeserializeBinaryBulkStateWithDictionary : public IDataType::DeserializeBinaryBulkState
-    {
-        UInt64 num_rows_to_read_until_next_index = 0;
-        ColumnPtr index;
-        DeserializeBinaryBulkStatePtr state;
-
-        DeserializeBinaryBulkStateWithDictionary(DeserializeBinaryBulkStatePtr && state) : state(std::move(state)) {}
-    };
-
     DeserializeBinaryBulkStatePtr createDeserializeBinaryBulkState() const override;
 
     void deserializeBinaryBulkWithMultipleStreams(
