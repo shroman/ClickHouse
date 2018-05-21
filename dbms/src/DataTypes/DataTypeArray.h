@@ -71,6 +71,11 @@ public:
         bool position_independent_encoding,
         SubstreamPath path) const override;
 
+    DeserializeBinaryBulkStatePtr createDeserializeBinaryBulkState() const override
+    {
+        return nested->createDeserializeBinaryBulkState();
+    }
+
     void deserializeBinaryBulkWithMultipleStreams(
         IColumn & column,
         InputStreamGetter getter,
