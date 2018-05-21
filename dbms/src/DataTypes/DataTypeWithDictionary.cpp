@@ -79,9 +79,11 @@ void DataTypeWithDictionary::serializeBinaryBulkWithMultipleStreams(
     {
         const auto & indexes = column_with_dictionary.getIndexesPtr();
         const auto & keys = column_with_dictionary.getUnique()->getNestedColumn();
-        sub_index = (*indexes->cut(offset, limit - offset)).mutate();
+        sub_index = (*indexes->cut(offset, limit)).mutate();
         ColumnPtr unique_indexes = makeSubIndex(*sub_index);
+        /// unique_indexes->index(sub_index) == indexes[offset:offset + limit]
         auto used_keys = keys->index(unique_indexes, 0);
+        /// (used_keys, sub_index) is ColumnWithDictionary for range [offset:offset + limit]
 
         UInt64 used_keys_size = used_keys->size();
         writeIntBinary(used_keys_size, *stream);
@@ -94,7 +96,7 @@ void DataTypeWithDictionary::serializeBinaryBulkWithMultipleStreams(
         if (!sub_index)
             throw Exception("Dictionary keys wasn't serialized", ErrorCodes::LOGICAL_ERROR);
 
-        indexes_type->serializeBinaryBulk(*sub_index, *stream, offset, limit);
+        indexes_type->serializeBinaryBulk(*sub_index, *stream, 0, limit);
     }
 }
 
