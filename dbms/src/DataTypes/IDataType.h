@@ -135,7 +135,7 @@ public:
         double avg_value_size_hint,
         bool /*position_independent_encoding*/,
         SubstreamPath path,
-        const & DeserializeBinaryBulkStatePtr /*state*/) const
+        const DeserializeBinaryBulkStatePtr & /*state*/) const
     {
         if (ReadBuffer * stream = getter(path))
             deserializeBinaryBulk(column, *stream, limit, avg_value_size_hint);
