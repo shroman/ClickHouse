@@ -29,7 +29,7 @@ public:
 
     DeserializeBinaryBulkStatePtr createDeserializeBinaryBulkState() const override
     {
-        return nested->createDeserializeBinaryBulkState();
+        return nested_data_type->createDeserializeBinaryBulkState();
     }
 
     void deserializeBinaryBulkWithMultipleStreams(
