@@ -104,6 +104,13 @@ void DataTypeWithDictionary::serializeBinaryBulkWithMultipleStreams(
     }
 }
 
+DeserializeBinaryBulkStatePtr DataTypeWithDictionary::createDeserializeBinaryBulkState() const
+{
+return std::make_shared<DeserializeBinaryBulkStateWithDictionary>(
+        dictionary_type->createDeserializeBinaryBulkState());
+}
+
+
 void DataTypeWithDictionary::deserializeBinaryBulkWithMultipleStreams(
         IColumn & column,
         InputStreamGetter getter,

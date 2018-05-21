@@ -41,11 +41,7 @@ public:
         DeserializeBinaryBulkStateWithDictionary(DeserializeBinaryBulkStatePtr && state) : state(std::move(state)) {}
     };
 
-    DeserializeBinaryBulkStatePtr createDeserializeBinaryBulkState() const override
-    {
-        return std::make_shared<DeserializeBinaryBulkStateWithDictionary>(
-                dictionary_type->createDeserializeBinaryBulkState());
-    }
+    DeserializeBinaryBulkStatePtr createDeserializeBinaryBulkState() const override;
 
     void deserializeBinaryBulkWithMultipleStreams(
             IColumn & column,
